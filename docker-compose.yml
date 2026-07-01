@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # MongoDB service container
+  mongo:
+    image: mongo:6.0
+    container_name: mern_mongodb
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - mern-network
+    restart: always
+
+  # Express API backend service container
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mern_backend
+    ports:
+      - '5000:5000'
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://mongo:27017/task_db
+      - JWT_SECRET=d8a4f91b7e6c4a9ebc9e1d8847ffde92842c67e8a93e3d489bf718e285d82001
+      - JWT_EXPIRES_IN=7d
+      - COOKIE_EXPIRES_IN=7
+      - FRONTEND_URL=http://localhost:5173
+    depends_on:
+      - mongo
+    networks:
+      - mern-network
+    restart: always
+
+  # React SPA served via Nginx container
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mern_frontend
+    ports:
+      - '5173:80'
+    depends_on:
+      - backend
+    networks:
+      - mern-network
+    restart: always
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  mern-network:
+    driver: bridge
