@@ -1,5 +1,9 @@
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs');
+
+const logsDir = path.join(__dirname, '../logs');
+fs.mkdirSync(logsDir, { recursive: true });
 
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
@@ -14,11 +18,11 @@ const logger = winston.createLogger({
   defaultMeta: { service: 'task-service' },
   transports: [
     new winston.transports.File({ 
-      filename: path.join(__dirname, '../logs/error.log'), 
+      filename: path.join(logsDir, 'error.log'), 
       level: 'error' 
     }),
     new winston.transports.File({ 
-      filename: path.join(__dirname, '../logs/combined.log') 
+      filename: path.join(logsDir, 'combined.log') 
     })
   ]
 });

@@ -10,7 +10,7 @@ const signToken = (id) => {
   });
 };
 
-// Create JWT token and set in HTTP-Only Cookie, then send JSON response
+// Create JWT token and set in HTTP-only cookie, then send JSON response
 const sendTokenResponse = (user, statusCode, res) => {
   const token = signToken(user._id);
 
@@ -29,7 +29,6 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   res.status(statusCode).json({
     success: true,
-    token, // Also send in body as a fallback option for APIs/Mobile clients
     user: {
       id: user._id,
       username: user.username,
@@ -43,7 +42,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 // @route   POST /api/v1/auth/register
 // @access  Public
 const register = async (req, res, next) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password } = req.body;
 
   try {
     // Check if user already exists
@@ -52,22 +51,12 @@ const register = async (req, res, next) => {
       return next(new APIError('User with this email or username already exists', 400));
     }
 
-    // Determine role (default is 'user'). Prevent arbitrary user escalation to 'admin'
-    // Unless specifically configured, we check if they are the first user to allow admin bootstrapping, 
-    // or we check if an admin is creating the user.
-    let userRole = 'user';
-    if (role === 'admin') {
-      // For testing convenience, we allow admin creation.
-      // In a real-world scenario, you would restrict this behind an admin authorization guard.
-      userRole = 'admin';
-    }
-
     // Create user
     const user = await User.create({
       username,
       email,
       password,
-      role: userRole
+      role: 'user'
     });
 
     sendTokenResponse(user, 201, res); // 201 Created (using standard status)

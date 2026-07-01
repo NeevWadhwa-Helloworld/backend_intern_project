@@ -65,11 +65,6 @@ const router = express.Router();
  *                 type: string
  *                 minimum: 6
  *                 example: password123
- *               role:
- *                 type: string
- *                 enum: [user, admin]
- *                 default: user
- *                 example: user
  *     responses:
  *       201:
  *         description: User registered successfully. Set-Cookie header contains JWT.

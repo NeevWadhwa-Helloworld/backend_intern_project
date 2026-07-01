@@ -1,22 +1,13 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /usr/src/app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-
-# Multi-stage build for a clean, minimal runtime environment
 FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
-# Copy built server assets
-COPY --from=builder /usr/src/app /usr/src/app
+COPY . .
+
+RUN mkdir -p logs && chown -R node:node /usr/src/app
 
 # Run container as a non-privileged user for enhanced security
 USER node
