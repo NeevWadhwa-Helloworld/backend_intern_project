@@ -1,6 +1,9 @@
 # Stage 1: Build the React application
 FROM node:20-alpine AS build
 
+ARG VITE_API_URL=http://localhost:5000
+ENV VITE_API_URL=$VITE_API_URL
+
 WORKDIR /usr/src/app
 
 COPY package*.json ./

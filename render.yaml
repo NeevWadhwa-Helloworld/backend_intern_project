@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: secure-task-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: COOKIE_EXPIRES_IN
+        value: 7
+      - key: FRONTEND_URL
+        value: https://your-frontend-url.onrender.com
+      - key: CORS_ORIGIN
+        value: https://your-frontend-url.onrender.com
+      - key: COOKIE_SECURE
+        value: true
+      - key: ALLOW_ALL_ORIGINS
+        value: false
+      - key: SWAGGER_URL
+        value: https://your-backend-url.onrender.com
+      - key: BACKEND_URL
+        value: https://your-backend-url.onrender.com
+
+  - type: static
+    name: secure-task-frontend
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://your-backend-url.onrender.com

@@ -25,6 +25,8 @@ connectDB();
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // 1. Basic security headers
 app.use(helmet());
 
@@ -37,10 +39,22 @@ app.use(
 );
 
 // 3. CORS configuration (allowing credential passing for JWT cookies)
+const allowedOrigins = (process.env.FRONTEND_URL || process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || process.env.ALLOW_ALL_ORIGINS === 'true') {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true, // Enables cookie passing
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie']
 };
 app.use(cors(corsOptions));
@@ -85,6 +99,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // 9. API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/tasks', taskRoutes);
+
+// Health check for deployment platforms
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Root route welcome check
 app.get('/', (req, res) => {

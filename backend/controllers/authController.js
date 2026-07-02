@@ -16,11 +16,13 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   // Cookie configuration
   const cookieExpiresInDays = parseInt(process.env.COOKIE_EXPIRES_IN || '7', 10);
+  const isProduction = process.env.NODE_ENV === 'production';
+  const secureCookies = process.env.COOKIE_SECURE === 'true' || isProduction;
   const cookieOptions = {
     expires: new Date(Date.now() + cookieExpiresInDays * 24 * 60 * 60 * 1000),
     httpOnly: true, // Prevents XSS (Cross-Site Scripting) token access
-    secure: process.env.NODE_ENV === 'production', // Sent only over HTTPS in production
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax' // lax is sufficient for localhost port sharing
+    secure: secureCookies, // Sent only over HTTPS in production
+    sameSite: secureCookies ? 'none' : 'lax' // Required for cross-site cookies in production
   };
 
   res.cookie('token', token, cookieOptions);
@@ -95,9 +97,14 @@ const login = async (req, res, next) => {
 // @access  Private
 const logout = async (req, res, next) => {
   try {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const secureCookies = process.env.COOKIE_SECURE === 'true' || isProduction;
+
     res.cookie('token', 'none', {
       expires: new Date(Date.now() + 10 * 1000),
-      httpOnly: true
+      httpOnly: true,
+      secure: secureCookies,
+      sameSite: secureCookies ? 'none' : 'lax'
     });
 
     logger.info(`User logged out successfully`);
